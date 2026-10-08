@@ -1,91 +1,101 @@
-Pizza Sales Analysis: SQL & Interactive Dashboard
-An end-to-end data analysis project focusing on operational efficiency and sales trends for a busy pizzeria. This project bridges database query optimization with executive-facing business intelligence by combining a PostgreSQL relational database backend with a fully dynamic Excel/PowerBI Interactive Dashboard.
+<h1 align="center">🍕 Hamburg Pizzeria Sales Analysis</h1>
+
+<p align="center">
+  <b>From raw sales data to business decisions with SQL and Excel</b><br>
+  <img src="https://img.shields.io/badge/SQL-PostgreSQL-336791?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Excel-Dashboard-217346?logo=microsoftexcel&logoColor=white" alt="Excel">
+  <img src="https://img.shields.io/badge/Data-48%2C647%20rows-orange" alt="Rows">
+  <img src="https://img.shields.io/badge/Year-2015-blue" alt="Year">
+</p>
+
+<p align="center">
+  <img src="screenshots/dashboard_preview.png" alt="Pizza sales dashboard" width="900">
+</p>
+
 ---
-Executive Summary & KPIs
-The project parses complex transactional pizza orders across key business constraints as per (category, sizing, time parameters, and order frequencies). The primary operational metrics calculated are:
-Total Revenue: €818,329.80
-Total Orders Placed: 21,360 orders
-Total Pizzas Sold: 49,601 pizzas
-Average Order Value: €38.31 per order
-Average Pizzas Per Order: 2.32 pizzas
----
-Tech Stack & Skills Demonstrated
-Database Management: PostgreSQL / pgAdmin 4
-Data Analysis Expressions: Complex SQL Aggregations (`SUM`, `COUNT DISTINCT`), Date/Time functions (`EXTRACT`, `TO_CHAR`), and Data Type Casting (`::numeric`).
-Visualization & BI: Dynamic Multi-page Dashboard design, Interactive Slicers (Yearly filter matrices), Conditional Metric Bar Charts, and Radial Donut Percentages.
----
-📑 SQL Script (Cleaned & Production-Ready)
-Below are the production-optimized PostgreSQL queries utilized to seed the data engine. Note: Syntax errors such as accidental double commas and deprecated casting wrappers have been corrected from initial testing logs.
+
+## 🎯 What is this project about?
+
+This project analyses one year of pizza sales data to answer the questions a pizzeria owner would ask.
+I loaded the data into **PostgreSQL**, checked its quality, answered 15 business questions with SQL, and built an **interactive Excel dashboard** to present the results.
+
+## 📈 Results at a glance
+
+| 💶 Revenue | 🧾 Orders | 🍕 Pizzas sold | 🛒 Avg. order value | 📦 Pizzas per order |
+|:---:|:---:|:---:|:---:|:---:|
+| **€ 818,329.80** | **21,360** | **49,601** | **€ 38.31** | **2.32** |
+
+## 🔍 What I found
+
+| Question | Answer |
+|---|---|
+| Which day is the busiest? | **Friday** (3,490 orders). Sunday is the quietest (2,620). |
+| When do customers order? | Two peaks: **12:00–14:00** and **17:00–19:00**. |
+| Which category earns the most? | **Classic** – 26.9 % of revenue. |
+| Which size sells best? | **Large** – 45.9 % of revenue. XL and XXL together are under 2 %. |
+| Best pizza by revenue? | **The Thai Chicken Pizza** (€ 43,434.25). |
+| Weakest pizza? | **The Brie Carre Pizza** – lowest in quantity (490) and revenue. |
+
+## 💡 Business recommendations
+
+1. **Plan staff around the peaks** – Friday and the lunch/dinner hours need the most people.
+2. **Boost Sundays** with an offer, because it is the weakest day.
+3. **Review XL and XXL sizes** – they sell very little and may not be worth the effort.
+4. **Review the Brie Carre pizza** – improve it, promote it, or replace it.
+
+## 🧪 A taste of the SQL
+
 ```sql
--- 1. TOTAL REVENUE
-SELECT round(sum(total_price)::numeric, 2) AS total_revenue 
-FROM dd_pizza_sales;
-
--- 2. AVERAGE ORDER VALUE
-SELECT round((sum(total_price) / count(distinct order_id))::numeric, 2) AS average_order_value 
-FROM dd_pizza_sales;
-
--- 3. TOTAL PIZZAS SOLD
-SELECT sum(quantity) AS total_pizzas_sold 
-FROM dd_pizza_sales;
-
--- 4. TOTAL ORDERS PLACED
-SELECT count(distinct order_id) AS total_orders 
-FROM dd_pizza_sales;
-
--- 5. AVERAGE PIZZAS PER ORDER
-SELECT round((sum(quantity)::numeric / count(distinct order_id)), 2) AS average_pizzas_per_order 
-FROM dd_pizza_sales;
-
--- 6. TOTAL PIZZAS SOLD BY PIZZA SIZE
-SELECT pizza_size, sum(quantity) AS total_pizzas_sold 
-FROM dd_pizza_sales
-GROUP BY pizza_size
-ORDER BY total_pizzas_sold DESC;
-
--- 7. DAILY TREND FOR TOTAL ORDERS
-SELECT 
-    to_char(order_date, 'day') AS order_day,
-    count(distinct order_id) AS total_orders 
-FROM dd_pizza_sales
-GROUP BY to_char(order_date, 'day'), extract(dow from order_date)
-ORDER BY extract(dow from order_date);
-
--- 8. HOURLY TREND FOR ORDERS
-SELECT 
-    extract(hour FROM order_time) AS order_hours,
-    count(distinct order_id) AS total_orders 
-FROM dd_pizza_sales
-GROUP BY extract(hour FROM order_time)
-ORDER BY order_hours;
-
--- 9. PERCENTAGE OF SALES BY PIZZA CATEGORY
-SELECT 
-    pizza_category, 
-    round(sum(total_price)::numeric, 2) AS total_revenue,
-    round((sum(total_price) / (SELECT sum(total_price) FROM dd_pizza_sales) * 100)::numeric, 2) AS pct_contribution
-FROM dd_pizza_sales
+-- Revenue and share of total sales by pizza category
+SELECT pizza_category,
+       ROUND(SUM(total_price)::NUMERIC, 2) AS total_revenue,
+       ROUND((SUM(total_price) / (SELECT SUM(total_price) FROM hamburg_pizzeria_sales) * 100)::NUMERIC, 2) AS pct_contribution
+FROM hamburg_pizzeria_sales
 GROUP BY pizza_category
 ORDER BY pct_contribution DESC;
-
--- 10. TOP 5 BEST SELLERS BY TOTAL PIZZAS SOLD
-SELECT pizza_name, sum(quantity) AS total_pizza_sold 
-FROM dd_pizza_sales
-GROUP BY pizza_name
-ORDER BY total_pizza_sold DESC 
-LIMIT 5;
-
--- 11. BOTTOM 5 WORST SELLERS BY TOTAL PIZZAS SOLD
-SELECT pizza_name, sum(quantity) AS total_pizza_sold 
-FROM dd_pizza_sales
-GROUP BY pizza_name
-ORDER BY total_pizza_sold ASC 
-LIMIT 5;
 ```
----
-Strategic Insights Discovered
-The Friday Rush: Order volume climbs systematically over the workweek, peaking on Fridays (3,538 total orders) and Saturdays (3,162 total orders).
-Lunch vs. Dinner Spikes: Peak entry hours are between mid-day lunch breaks (12:00 PM – 1:00 PM) and evening dinner selections (4:00 PM – 8:00 PM).
-Core Volume Profiles: Large-size (`L`) pizzas rule individual item counts (18,952 units sold), accounting for 45.91% of overall proportional size splits.
-Product Range Divergence: The Classic Deluxe Pizza remains the highest moving inventory driver (2,453 sold), while The Brie Carre Pizza captures the trailing bottom metric footprint with only 490 total units sold.
----
+
+## ✅ Data quality first
+
+Before any analysis I checked: missing values, orders with conflicting dates or times, weekday vs. date, and `unit_price × quantity = total_price`. **All checks passed.**
+
+## 📁 Project structure
+
+```
+hamburg-pizzeria-sales-analysis/
+├── README.md
+├── data/          → raw CSV file
+├── sql/
+│   ├── 00_create_table.sql         → create table + load CSV
+│   ├── 01_data_quality_checks.sql  → data validation
+│   └── 02_business_queries.sql     → 15 queries behind the dashboard
+├── excel/         → interactive dashboard (.xlsx)
+└── screenshots/   → dashboard preview
+```
+
+## ▶️ How to run
+
+1. Create a PostgreSQL database and run `sql/00_create_table.sql`.
+2. Load `data/hamburg_pizzeria_sales.csv` (command is inside the file).
+3. Run `sql/01_data_quality_checks.sql`, then `sql/02_business_queries.sql`.
+4. Open `excel/Hamburg_Pizza_Sales_Dashboard.xlsx` and explore the dashboard.
+
+## 🧰 Skills shown
+
+`SQL aggregation` · `GROUP BY / subqueries` · `date & time functions` · `data validation` · `KPI design` · `Excel dashboard & slicer` · `business storytelling`
+
+## ℹ️ About the data & what I added
+
+**Data source:** the dataset is a practice dataset, shared publicly for learning SQL and Excel: [Pizza Data For SQL & Excel (Google Drive)](https://drive.google.com/drive/folders/1ecpBALfFUMSK-GOnk-X4nZhC_uK18zih). I found it through the YouTube tutorial *"SQL & Excel Portfolio Project "* by *[SWAPANJEET S]* . The data is used here for learning and portfolio purposes only.
+
+**What I added myself:**
+- ✅ **Data quality checks** in SQL (missing values, conflicting dates, price and weekday validation) before any analysis
+- ✅ **15 documented SQL queries**, each with its expected result, and **all numbers cross-checked** between SQL and the Excel dashboard
+- ✅ **Interactive Excel dashboard** with KPIs, trends, category and size analysis, and a time slicer
+- ✅ **Business recommendations** based on the findings
+- ✅ **Clean project structure and documentation**, so anyone can reproduce the results step by step
+
+
+## 👤 Author
+
+**[DOLLY]** · [LinkedIn] · [dollykhanna3210@gmail.com]
