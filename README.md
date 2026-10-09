@@ -63,14 +63,14 @@ Before any analysis I checked: missing values, orders with conflicting dates or 
 
 ```
 hamburg-pizzeria-sales-analysis/
-├── README.md
-├── data/          → raw CSV file
+├── data/                              → raw CSV file
+├── excel/                             → interactive dashboard (.xlsx)
+├── screenshots/                       → dashboard preview images
 ├── sql/
-│   ├── 00_create_table.sql         → create table + load CSV
-│   ├── 01_data_quality_checks.sql  → data validation
-│   └── 02_business_queries.sql     → 15 queries behind the dashboard
-├── excel/         → interactive dashboard (.xlsx)
-└── screenshots/   → dashboard preview
+│   ├── 00_create_table.sql            → create table + load CSV
+│   ├── 01_data_quality_checks.sql     → data validation
+│   └── 02_business_queries.sql        → 15 queries behind the dashboard
+└── README.md
 ```
 
 ## ▶️ How to run
